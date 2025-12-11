@@ -41,10 +41,8 @@ async def handler(event: dict, context):
 
 
 async def main():
-    dp.include_router(router)
-
     logger.info("Bot started")
-
+    await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
 
