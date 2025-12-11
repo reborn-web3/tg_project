@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.filters import Command
-from src.config import settings
+from config import settings
 
 start_router = Router()
 
