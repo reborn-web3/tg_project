@@ -7,6 +7,7 @@ from aiogram.types import Update
 
 from config import settings
 from handlers import router
+from database import init_db
 
 
 logging.basicConfig(level=logging.INFO)
@@ -41,6 +42,10 @@ async def handler(event: dict, context):
 
 
 async def main():
+    logger.info("Initializing database...")
+    await init_db()
+    logger.info("Database initialized")
+
     logger.info("Bot started")
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
