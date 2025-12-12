@@ -387,6 +387,12 @@ async def finalize_registration(message: Message, state: FSMContext):
             about=data.get("about"),
         )
 
+    # Отправляем поздравление со статусом Бриллиант
+    await message.answer(
+        f"{data['first_name']}, Поздравляем Вас с получением статуса Бриллиант 💎",
+        parse_mode="HTML",
+    )
+
     # Формируем итоговое сообщение
     about_text = data.get("about", "Не указано")
     summary = (
