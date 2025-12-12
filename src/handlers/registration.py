@@ -207,8 +207,7 @@ async def process_name(message: Message, state: FSMContext):
 
         # Переходим к следующему шагу
         await message.answer(
-            f"✅ Отлично, <b>{first_name} {last_name}</b>!\n\n"
-            f"<b>Из какого вы города?</b>",
+            f"✅ Отлично, <b>{first_name}</b>!\n\n<b>Из какого вы города?</b>",
             parse_mode="HTML",
         )
         await state.set_state(RegistrationStates.waiting_for_city)
@@ -423,6 +422,7 @@ async def finalize_registration(message: Message, state: FSMContext):
     except Exception as e:
         # Логируем ошибку и сообщаем пользователю
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Database error during registration: {e}")
         await message.answer(
