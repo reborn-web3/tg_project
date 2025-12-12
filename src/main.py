@@ -4,6 +4,7 @@ import asyncio
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
+from aiogram.fsm.storage.memory import MemoryStorage
 
 from config import settings
 from handlers import router
@@ -14,11 +15,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 bot = Bot(token=settings.BOT_TOKEN)
-dp = Dispatcher()
+# Добавляем хранилище для FSM (состояния)
+storage = MemoryStorage()
+dp = Dispatcher(storage=storage)
 dp.include_router(router)
 
 
 async def handler(event: dict, context):
+    """Webhook handler для Yandex Cloud Functions"""
     try:
         body: str = event["body"]
         if not body or body.strip() == "{}":
@@ -42,6 +46,7 @@ async def handler(event: dict, context):
 
 
 async def main():
+    """Локальный запуск бота для разработки"""
     logger.info("Initializing database...")
     await init_db()
     logger.info("Database initialized")

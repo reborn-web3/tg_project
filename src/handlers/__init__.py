@@ -1,8 +1,9 @@
 from aiogram import Router
-from . import start  # Импорт start роутера
+from . import registration
 
 # Создаем главный роутер handlers
 router = Router()
 
 # Подключаем все роутеры модулей
-router.include_router(start.start_router)
+# Регистрация обрабатывает /start и дальнейшие шаги анкеты
+router.include_router(registration.registration_router)
