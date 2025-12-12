@@ -28,15 +28,15 @@ registration_router = Router()
 # Карта доступных чатов и их ссылок
 CHAT_LINKS = {
     "investments": (
-        "Чат инвестиций",
+        "Клуб биржевых инвестиций",
         "https://t.me/+hDOyTja5fJxjNTM6",
     ),
     "management": (
-        "Чат менеджмента",
+        "Менеджмент новой реальности!",
         "https://t.me/+3vE_6_mHzeA5NzY6",
     ),
     "marketing": (
-        "Маркетинговый чат",
+        "Маркетинг и креатив в бизнесе",
         "https://t.me/+IHrqutbfD-kyOTQ6",
     ),
 }
