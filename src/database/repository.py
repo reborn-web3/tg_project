@@ -56,3 +56,21 @@ class UserRepository:
 
         user = await self.create(user_id, username, first_name_tg)
         return user, True
+
+    async def reset_profile(self, user_id: int) -> Optional[User]:
+        """Сбросить профиль пользователя (очистить все поля профиля, кроме базовых)"""
+        user = await self.get_by_id(user_id)
+        if not user:
+            return None
+
+        # Очищаем все поля профиля, сохраняя базовые данные
+        user.first_name = None
+        user.last_name = None
+        user.city = None
+        user.interests = None
+        user.events = None
+        user.about = None
+
+        await self.session.commit()
+        await self.session.refresh(user)
+        return user

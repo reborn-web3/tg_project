@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 bot = Bot(token=settings.BOT_TOKEN)
-# Добавляем хранилище для FSM (состояния)
+# Хранилище для FSM (состояния)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 dp.include_router(router)

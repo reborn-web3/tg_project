@@ -12,6 +12,7 @@ from keyboards.registration import (
     update_interests_keyboard,
     update_events_keyboard,
     get_edit_profile_keyboard,
+    get_event_registration_keyboard,
 )
 from utils.validators import (
     validate_full_name,
@@ -128,6 +129,38 @@ async def cmd_start(message: Message, state: FSMContext):
 
     # Начинаем регистрацию
     await message.answer(
+        f"👋 Привет, <b>{first_name_tg}</b>!\n\n"
+        f"Давайте познакомимся поближе.\n\n"
+        f"<b>Как Вас зовут?</b>\n"
+        f"Введите имя и фамилию.",
+        parse_mode="HTML",
+    )
+    await state.set_state(RegistrationStates.waiting_for_name)
+
+
+@registration_router.message(Command("restart"))
+async def cmd_restart(message: Message, state: FSMContext):
+    """Перезапуск регистрации - сброс профиля и начало заново"""
+    user_id = message.from_user.id
+    username = message.from_user.username
+    first_name_tg = message.from_user.first_name
+
+    # Очищаем состояние FSM
+    await state.clear()
+
+    # Сбрасываем профиль пользователя в БД
+    async with async_session_maker() as session:
+        repo = UserRepository(session)
+        # Создаем пользователя, если его еще нет
+        user, _ = await repo.get_or_create(
+            user_id=user_id, username=username, first_name_tg=first_name_tg
+        )
+        # Сбрасываем профиль
+        await repo.reset_profile(user_id)
+
+    # Начинаем регистрацию заново
+    await message.answer(
+        f"🔄 Профиль сброшен!\n\n"
         f"👋 Привет, <b>{first_name_tg}</b>!\n\n"
         f"Давайте познакомимся поближе.\n\n"
         f"<b>Как Вас зовут?</b>\n"
@@ -374,18 +407,30 @@ async def finalize_registration(message: Message, state: FSMContext):
     data = await state.get_data()
     user_id = message.from_user.id
 
-    # Сохраняем все данные в БД
-    async with async_session_maker() as session:
-        repo = UserRepository(session)
-        await repo.update(
-            user_id=user_id,
-            first_name=data["first_name"],
-            last_name=data["last_name"],
-            city=data["city"],
-            interests=data["interests"],
-            events=data["events"],
-            about=data.get("about"),
+    # Сохраняем все данные в БД с обработкой ошибок
+    try:
+        async with async_session_maker() as session:
+            repo = UserRepository(session)
+            await repo.update(
+                user_id=user_id,
+                first_name=data["first_name"],
+                last_name=data["last_name"],
+                city=data["city"],
+                interests=data["interests"],
+                events=data["events"],
+                about=data.get("about"),
+            )
+    except Exception as e:
+        # Логируем ошибку и сообщаем пользователю
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Database error during registration: {e}")
+        await message.answer(
+            "⚠️ Произошла ошибка при сохранении данных. "
+            "Пожалуйста, попробуйте позже или используйте /restart для повторной регистрации.",
+            parse_mode="HTML",
         )
+        return
 
     # Отправляем поздравление со статусом Бриллиант
     await message.answer(
@@ -406,7 +451,7 @@ async def finalize_registration(message: Message, state: FSMContext):
         "Ваш профиль успешно создан! ✅"
     )
 
-    await message.answer(summary, parse_mode="HTML")
+    # await message.answer(summary, parse_mode="HTML")
 
     recommendations = _build_chat_recommendations(
         data.get("selected_interests"), data.get("selected_events")
@@ -421,6 +466,20 @@ async def finalize_registration(message: Message, state: FSMContext):
             "Мы дополним список чатов в ближайшее время!",
             parse_mode="HTML",
         )
+
+    # Отправляем сообщение о мероприятии
+    event_message = (
+        f"Здравствуйте, {data['first_name']}! Будем рады видеть Вас на мероприятии, "
+        f"посвященном окончанию кейс-чемпионата Cup  Moscow 2025!\n\n"
+        f"Дата: 17 декабря 2025\n"
+        f"Место: Отель Хилтон (г. Москва, Каланчёвская ул., 21/40)"
+    )
+    await message.answer(
+        event_message,
+        reply_markup=get_event_registration_keyboard(),
+        parse_mode="HTML",
+    )
+
     await state.clear()
 
 
@@ -450,6 +509,12 @@ async def cmd_profile(message: Message):
         )
 
         await message.answer(profile_text, parse_mode="HTML")
+
+
+@registration_router.callback_query(F.data == "event_register")
+async def handle_event_registration(callback: CallbackQuery):
+    """Обработка регистрации на мероприятие"""
+    await callback.answer("Вы успешно зарегистрированны", show_alert=True)
 
 
 # ------------------- Редактирование профиля ------------------- #

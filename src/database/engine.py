@@ -3,9 +3,15 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from .models import Base
 
 # SQLite для простоты
+# Важно: таймаут 20 секунд для обработки блокировок при одновременных запросах
 DATABASE_URL = "sqlite+aiosqlite:///bot.db"
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    # Таймаут для ожидания разблокировки БД (критично для 120+ пользователей)
+    connect_args={"check_same_thread": False, "timeout": 20},
+)
 async_session_maker = async_sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False
 )

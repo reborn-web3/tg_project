@@ -132,3 +132,11 @@ def update_events_keyboard(selected: list[str]) -> InlineKeyboardMarkup:
     )
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def get_event_registration_keyboard() -> InlineKeyboardMarkup:
+    """Клавиатура с кнопкой регистрации на мероприятие"""
+    keyboard = [
+        [InlineKeyboardButton(text="Зарегистрироваться", callback_data="event_register")]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
