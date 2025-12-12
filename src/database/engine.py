@@ -1,12 +1,11 @@
+import os
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from .models import Base
 
-# SQLite для простоты
-# Важно: таймаут 20 секунд для обработки блокировок при одновременных запросах
-  # src/database/engine.py
-  import os
-  DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:////tmp/bot.db")
+# SQLite по умолчанию в /tmp — в Functions корень read-only.
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:////tmp/bot.db")
+
 engine = create_async_engine(
     DATABASE_URL,
     echo=False,

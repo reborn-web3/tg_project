@@ -22,8 +22,15 @@ dp.include_router(router)
 
 db_ready = False
 
+db_ready = False
+
+
 async def handler(event: dict, context):
     """Webhook handler для Yandex Cloud Functions"""
+    global db_ready
+    if not db_ready:
+        await init_db()
+        db_ready = True
     global db_ready
     if not db_ready:
         await init_db()
