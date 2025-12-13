@@ -9,6 +9,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from config import settings
 from handlers import router
 from database import init_db
+from database.init_texts import init_default_texts
 
 
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +29,7 @@ async def handler(event: dict, context):
     global db_ready
     if not db_ready:
         await init_db()
+        await init_default_texts()
         db_ready = True
         logger.info("Database initialized")
 
@@ -57,6 +59,7 @@ async def main():
     """Локальный запуск бота для разработки"""
     logger.info("Initializing database...")
     await init_db()
+    await init_default_texts()
     logger.info("Database initialized")
 
     logger.info("Bot started")

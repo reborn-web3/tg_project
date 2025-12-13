@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .models import User
+from .models import User, TextTemplate
 
 
 class UserRepository:
@@ -74,3 +74,52 @@ class UserRepository:
         await self.session.commit()
         await self.session.refresh(user)
         return user
+
+
+class TextTemplateRepository:
+    """Репозиторий для работы с текстовыми шаблонами"""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def get_by_key(self, key: str) -> Optional[TextTemplate]:
+        """Получить шаблон по ключу"""
+        result = await self.session.execute(
+            select(TextTemplate).where(TextTemplate.key == key)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_all(self) -> List[TextTemplate]:
+        """Получить все шаблоны"""
+        result = await self.session.execute(select(TextTemplate))
+        return list(result.scalars().all())
+
+    async def create_or_update(
+        self, key: str, title: str, content: str, description: Optional[str] = None
+    ) -> TextTemplate:
+        """Создать или обновить шаблон"""
+        template = await self.get_by_key(key)
+        if template:
+            template.title = title
+            template.content = content
+            if description is not None:
+                template.description = description
+        else:
+            template = TextTemplate(
+                key=key, title=title, content=content, description=description
+            )
+            self.session.add(template)
+
+        await self.session.commit()
+        await self.session.refresh(template)
+        return template
+
+    async def delete(self, key: str) -> bool:
+        """Удалить шаблон"""
+        template = await self.get_by_key(key)
+        if not template:
+            return False
+
+        await self.session.delete(template)
+        await self.session.commit()
+        return True
