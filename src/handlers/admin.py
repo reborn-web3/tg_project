@@ -179,14 +179,18 @@ async def start_edit_content(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
+# Обработчик для admin_edit_{key} - должен быть ПОСЛЕ admin_edit_content_
+# В aiogram порядок обработчиков важен - более специфичные должны быть первыми
+# admin_edit_content_ уже определен выше (строка 157), поэтому он обработается первым
+# Этот обработчик обрабатывает только admin_edit_{key}, но не admin_edit_content_{key}
 @admin_router.callback_query(
-    StateFilter(AdminStates.editing_text), 
+    StateFilter(AdminStates.editing_text),
     F.data.startswith("admin_edit_")
 )
 async def edit_text_select(callback: CallbackQuery, state: FSMContext):
     """Выбор текста для редактирования"""
     # Извлекаем ключ из callback_data (admin_edit_KEY)
-    # Этот обработчик срабатывает для admin_edit_{key}, но не для admin_edit_content_{key}
+    # Если это admin_edit_content_, то более специфичный обработчик уже обработал его
     key = callback.data.replace("admin_edit_", "")
     
     async with async_session_maker() as session:
