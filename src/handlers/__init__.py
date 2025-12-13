@@ -4,8 +4,7 @@ from . import registration, admin
 # Создаем главный роутер handlers
 router = Router()
 
-# Подключаем все роутеры модулей
-# Регистрация обрабатывает /start и дальнейшие шаги анкеты
+# ВАЖНО: Подключаем ТОЛЬКО registration роутер!
+# Старый start.py удалить или не подключать
 router.include_router(registration.registration_router)
-# Админ-панель для редактирования текстов
 router.include_router(admin.admin_router)

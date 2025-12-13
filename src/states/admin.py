@@ -8,4 +8,3 @@ class AdminStates(StatesGroup):
     editing_text = State()  # Редактирование текста по ключу
     waiting_for_text_key = State()  # Ожидание выбора ключа для редактирования
     waiting_for_new_content = State()  # Ожидание нового содержимого
-

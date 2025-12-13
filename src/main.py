@@ -62,6 +62,10 @@ async def main():
     await init_default_texts()
     logger.info("Database initialized")
 
+    logger.info("Initializing text templates...")
+    await init_default_texts()
+    logger.info("Text templates initialized")
+
     logger.info("Bot started")
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
