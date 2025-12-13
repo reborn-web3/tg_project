@@ -127,45 +127,6 @@ async def list_all_texts(callback: CallbackQuery):
 
 
 @admin_router.callback_query(
-    StateFilter(AdminStates.editing_text), 
-    F.data.startswith("admin_edit_")
-)
-async def edit_text_select(callback: CallbackQuery, state: FSMContext):
-    """Выбор текста для редактирования"""
-    # Пропускаем если это admin_edit_content_, так как это обрабатывается отдельно
-    if callback.data.startswith("admin_edit_content_"):
-        return
-    
-    # Извлекаем ключ из callback_data (admin_edit_KEY)
-    key = callback.data.replace("admin_edit_", "")
-    
-    async with async_session_maker() as session:
-        repo = TextTemplateRepository(session)
-        template = await repo.get_by_key(key)
-    
-    if not template:
-        await callback.answer("Текст не найден!", show_alert=True)
-        return
-    
-    # Показываем текущий текст и предлагаем редактировать
-    preview = template.content[:200] + "..." if len(template.content) > 200 else template.content
-    text = (
-        f"📝 <b>{template.title}</b>\n\n"
-        f"<b>Текущий текст:</b>\n"
-        f"<code>{preview}</code>\n\n"
-        f"Описание: {template.description or 'Нет описания'}"
-    )
-    
-    await state.update_data(editing_key=key)
-    await callback.message.edit_text(
-        text,
-        reply_markup=get_text_edit_keyboard(key),
-        parse_mode="HTML",
-    )
-    await callback.answer()
-
-
-@admin_router.callback_query(
     StateFilter(AdminStates.editing_text), F.data.startswith("admin_view_")
 )
 async def view_text(callback: CallbackQuery):
@@ -213,6 +174,42 @@ async def start_edit_content(callback: CallbackQuery, state: FSMContext):
         f"<b>Текущий текст:</b>\n<code>{template.content}</code>\n\n"
         f"📝 Отправьте новый текст (поддерживается HTML):",
         reply_markup=get_cancel_keyboard(),
+        parse_mode="HTML",
+    )
+    await callback.answer()
+
+
+@admin_router.callback_query(
+    StateFilter(AdminStates.editing_text), 
+    F.data.startswith("admin_edit_")
+)
+async def edit_text_select(callback: CallbackQuery, state: FSMContext):
+    """Выбор текста для редактирования"""
+    # Извлекаем ключ из callback_data (admin_edit_KEY)
+    # Этот обработчик срабатывает для admin_edit_{key}, но не для admin_edit_content_{key}
+    key = callback.data.replace("admin_edit_", "")
+    
+    async with async_session_maker() as session:
+        repo = TextTemplateRepository(session)
+        template = await repo.get_by_key(key)
+    
+    if not template:
+        await callback.answer("Текст не найден!", show_alert=True)
+        return
+    
+    # Показываем текущий текст и предлагаем редактировать
+    preview = template.content[:200] + "..." if len(template.content) > 200 else template.content
+    text = (
+        f"📝 <b>{template.title}</b>\n\n"
+        f"<b>Текущий текст:</b>\n"
+        f"<code>{preview}</code>\n\n"
+        f"Описание: {template.description or 'Нет описания'}"
+    )
+    
+    await state.update_data(editing_key=key)
+    await callback.message.edit_text(
+        text,
+        reply_markup=get_text_edit_keyboard(key),
         parse_mode="HTML",
     )
     await callback.answer()
