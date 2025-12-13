@@ -65,7 +65,7 @@ async def back_to_main(callback: CallbackQuery, state: FSMContext):
 
 
 @admin_router.callback_query(
-    StateFilter(AdminStates.main_menu), F.data == "admin_edit_texts"
+    StateFilter(AdminStates.main_menu, AdminStates.editing_text), F.data == "admin_edit_texts"
 )
 async def show_text_list(callback: CallbackQuery, state: FSMContext):
     """Показать список текстов для редактирования"""
@@ -101,7 +101,7 @@ async def show_text_list(callback: CallbackQuery, state: FSMContext):
 
 
 @admin_router.callback_query(
-    StateFilter(AdminStates.editing_text), F.data == "admin_list_texts"
+    StateFilter(AdminStates.main_menu, AdminStates.editing_text), F.data == "admin_list_texts"
 )
 async def list_all_texts(callback: CallbackQuery):
     """Показать список всех текстов с их содержимым"""
@@ -127,10 +127,15 @@ async def list_all_texts(callback: CallbackQuery):
 
 
 @admin_router.callback_query(
-    StateFilter(AdminStates.editing_text), F.data.startswith("admin_edit_")
+    StateFilter(AdminStates.editing_text), 
+    F.data.startswith("admin_edit_")
 )
 async def edit_text_select(callback: CallbackQuery, state: FSMContext):
     """Выбор текста для редактирования"""
+    # Пропускаем если это admin_edit_content_, так как это обрабатывается отдельно
+    if callback.data.startswith("admin_edit_content_"):
+        return
+    
     # Извлекаем ключ из callback_data (admin_edit_KEY)
     key = callback.data.replace("admin_edit_", "")
     
